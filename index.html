@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UnitX – محوّل الوحدات الذكي</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #e0e0e0;
+      --text: #1a1a2e;
+      --sub: #777;
+      --input-bg: #fafafa;
+      --result-bg: #f0f7ff;
+      --result-border: #c7d7f9;
+      --notice-bg: #fffbeb;
+      --notice-border: #fde68a;
+      --notice-text: #92400e;
+      --blue: #2563eb;
+      --blue-light: #f0f4ff;
+      --blue-light-border: #c7d7f9;
+      --footer: #aaa;
+      --tag-bg: #f0f4ff;
+      --tag-text: #2563eb;
+      --overlay: rgba(0,0,0,0.4);
+      --popup-bg: #fff;
+      --formula-bg: #f4f6f9;
+    }
+
+    body.dark {
+      --bg: #0f0f0f;
+      --card: #1a1a1a;
+      --border: #2a2a2a;
+      --text: #f0f0f0;
+      --sub: #888;
+      --input-bg: #111;
+      --result-bg: #0d1f36;
+      --result-border: #1e3a5f;
+      --notice-bg: #2a1f00;
+      --notice-border: #7a5000;
+      --notice-text: #fbbf24;
+      --blue-light: #0d1f36;
+      --blue-light-border: #1e3a5f;
+      --footer: #555;
+      --tag-bg: #0d1f36;
+      --tag-text: #60a5fa;
+      --overlay: rgba(0,0,0,0.7);
+      --popup-bg: #1a1a1a;
+      --formula-bg: #111;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: Arial, sans-serif;
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo { font-size: 1.3rem; font-weight: bold; color: var(--blue); }
+    .logo span { color: var(--text); font-weight: normal; font-size: 0.85rem; margin-right: 8px; }
+
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+
+    .nav-links a {
+      color: var(--sub);
+      text-decoration: none;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--blue); }
+
+    .theme-btn {
+      background: var(--input-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .theme-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* PAGES */
+    .page { display: none; padding: 40px 20px; max-width: 700px; margin: 0 auto; }
+    .page.active { display: block; }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .hero h1 { font-size: 2rem; color: var(--text); margin-bottom: 8px; }
+    .hero h1 span { color: var(--blue); }
+    .hero p { color: var(--sub); font-size: 0.95rem; line-height: 1.7; max-width: 500px; margin: 0 auto 16px; }
+
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 10px; }
+    .tag {
+      background: var(--tag-bg);
+      color: var(--tag-text);
+      border-radius: 20px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      border: 1px solid var(--blue-light-border);
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .tab {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--sub);
+      cursor: pointer;
+      font-size: 0.88rem;
+      transition: all 0.15s;
+    }
+
+    .tab:hover { border-color: var(--blue); color: var(--blue); }
+    .tab.active { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: bold; }
+
+    /* CARD */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      margin-bottom: 20px;
+    }
+
+    label { font-size: 0.82rem; color: var(--sub); display: block; margin-bottom: 6px; }
+
+    .input-group { display: flex; gap: 10px; margin-bottom: 8px; }
+
+    input[type=number] {
+      flex: 1;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    input[type=number]:focus { border-color: var(--blue); }
+
+    select {
+      padding: 12px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 0.9rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus { border-color: var(--blue); }
+
+    .swap-btn {
+      width: 100%;
+      padding: 9px;
+      background: var(--blue-light);
+      border: 1px solid var(--blue-light-border);
+      border-radius: 8px;
+      color: var(--blue);
+      font-size: 1rem;
+      cursor: pointer;
+      margin: 12px 0;
+      transition: all 0.15s;
+    }
+
+    .swap-btn:hover { background: var(--blue); color: #fff; }
+
+    /* RESULT */
+    .result {
+      background: var(--result-bg);
+      border: 1px solid var(--result-border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-top: 8px;
+    }
+
+    .result-number { font-size: 1.6rem; font-weight: bold; color: var(--blue); }
+    .result-label { font-size: 0.82rem; color: var(--sub); margin-top: 4px; }
+
+    .result-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+
+    .copy-btn, .how-btn {
+      padding: 7px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--sub);
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover, .how-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    /* MULTI RESULTS */
+    .multi-results { margin-top: 16px; }
+    .multi-results h4 { font-size: 0.82rem; color: var(--sub); margin-bottom: 10px; }
+    .multi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 8px;
+    }
+
+    .multi-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+
+    .multi-item .m-val { font-size: 1rem; font-weight: bold; color: var(--blue); }
+    .multi-item .m-unit { font-size: 0.75rem; color: var(--sub); margin-top: 2px; }
+
+    /* NOTICE */
+    .notice {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: var(--notice-bg);
+      border: 1px solid var(--notice-border);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--notice-text);
+      display: none;
+    }
+
+    /* POPUP */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .popup-overlay.show { display: flex; }
+
+    .popup {
+      background: var(--popup-bg);
+      border-radius: 12px;
+      padding: 28px;
+      width: 90%;
+      max-width: 420px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .popup h3 { font-size: 1rem; margin-bottom: 14px; color: var(--text); }
+
+    .formula-box {
+      background: var(--formula-bg);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .formula-box span {
+      display: block;
+      padding: 4px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .formula-box span:last-child { border-bottom: none; }
+
+    .close-btn {
+      margin-top: 16px;
+      width: 100%;
+      padding: 10px;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    /* ABOUT PAGE */
+    .about-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 16px;
+      line-height: 1.8;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    .about-card h2 { font-size: 1.2rem; color: var(--blue); margin-bottom: 12px; }
+    .about-card p { color: var(--sub); margin-bottom: 10px; }
+    .about-card ul { padding-right: 20px; color: var(--sub); }
+    .about-card ul li { margin-bottom: 6px; }
+
+    .trust-box {
+      background: var(--result-bg);
+      border: 1px solid var(--result-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--sub);
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: var(--footer);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border);
+      line-height: 1.8;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="logo">UnitX <span>محوّل الوحدات الذكي</span></div>
+    <div class="nav-links">
+      <a onclick="showPage('home')">الرئيسية</a>
+      <a onclick="showPage('about')">من نحن</a>
+      <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">الوضع الليلي</button>
+    </div>
+  </nav>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="hero">
+      <h1>أهلاً بك في <span>UnitX</span></h1>
+      <p>كل التحويلات اللي تحتاجها… في مكان واحد، بدقة وسهولة. بدون تعقيد أو إعلانات مزعجة.</p>
+      <div class="tags">
+        <span class="tag">سريع</span>
+        <span class="tag">عربي</span>
+        <span class="tag">دقيق</span>
+        <span class="tag">بدون تسجيل</span>
+        <span class="tag">يعمل بدون إنترنت</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('weight', this)">وزن</button>
+      <button class="tab" onclick="switchTab('length', this)">طول</button>
+      <button class="tab" onclick="switchTab('temp', this)">حرارة</button>
+      <button class="tab" onclick="switchTab('area', this)">مساحة</button>
+      <button class="tab" onclick="switchTab('volume', this)">حجم</button>
+      <button class="tab" onclick="switchTab('speed', this)">سرعة</button>
+      <button class="tab" onclick="switchTab('data', this)">بيانات</button>
+      <button class="tab" onclick="switchTab('time', this)">زمن</button>
+    </div>
+
+    <div class="card">
+      <label>من</label>
+      <div class="input-group">
+        <input type="number" id="inputVal" placeholder="أدخل القيمة" oninput="convert()" />
+        <select id="fromUnit" onchange="convert()"></select>
+      </div>
+
+      <button class="swap-btn" onclick="swapUnits()">تبديل الوحدتين</button>
+
+      <label>إلى</label>
+      <div class="input-group">
+        <select id="toUnit" onchange="convert()"></select>
+      </div>
+
+      <div class="result">
+        <div class="result-number" id="resultNumber">—</div>
+        <div class="result-label" id="resultLabel">النتيجة ستظهر هنا</div>
+        <div class="result-actions">
+          <button class="copy-btn" onclick="copyResult()">نسخ</button>
+          <button class="how-btn" onclick="showHow()">كيف تم الحساب؟</button>
+        </div>
+      </div>
+
+      <div class="multi-results" id="multiResults" style="display:none">
+        <h4>نفس القيمة بوحدات أخرى:</h4>
+        <div class="multi-grid" id="multiGrid"></div>
+      </div>
+
+      <div class="notice" id="notice"></div>
+    </div>
+  </div>
+
+  <!-- ABOUT PAGE -->
+  <div class="page" id="page-about">
+    <div class="about-card">
+      <h2>من نحن؟</h2>
+      <p>UnitX هو مشروع عربي بسيط هدفه تقديم أداة موثوقة وسهلة الاستخدام لتحويل الوحدات الأكثر استخداماً في الحياة اليومية والدراسة والعمل.</p>
+      <p>نؤمن أن الأدوات الجيدة لا تحتاج أن تكون معقدة، لذلك صممنا هذا الموقع ليكون:</p>
+      <ul>
+        <li>واضحاً وسهل الاستخدام</li>
+        <li>سريعاً بدون تحميل أو انتظار</li>
+        <li>خالياً من الإعلانات والإزعاج</li>
+        <li>مناسباً للطلاب والمهندسين والمبرمجين وكل شخص</li>
+      </ul>
+      <div class="trust-box">
+        نعتمد في التحويلات على معادلات قياسية معتمدة عالمياً، لضمان أن تكون النتائج دقيقة قدر الإمكان. رغم ذلك، ننصح دائماً بمراجعة النتائج في الحالات الحساسة أو الحسابات العلمية الدقيقة.
+      </div>
+    </div>
+
+    <div class="about-card">
+      <h2>لماذا UnitX؟</h2>
+      <ul>
+        <li>لأنه سريع ويعطيك النتيجة فوراً</li>
+        <li>لأنه عربي وواضح بدون غموض</li>
+        <li>لأنه يجمع أهم التحويلات في مكان واحد</li>
+        <li>لأنه يعرض نفس القيمة بأكثر من وحدة في نفس الوقت</li>
+        <li>لأنه بدون تسجيل دخول أو بيانات شخصية</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- POPUP -->
+  <div class="popup-overlay" id="popupOverlay" onclick="closePopup(event)">
+    <div class="popup">
+      <h3>طريقة الحساب</h3>
+      <div class="formula-box" id="formulaBox"></div>
+      <button class="close-btn" onclick="closePopup()">إغلاق</button>
+    </div>
+  </div>
+
+  <footer>
+    © 2026 — UnitX محوّل الوحدات الذكي<br>
+    تم تصميم هذا الموقع ليكون أداة بسيطة وموثوقة لكل من يحتاج تحويلات سريعة ودقيقة.<br>
+    <small>تنبيه: النتائج تقريبية في بعض الحالات بسبب التقريب العشري، لكنها مناسبة للاستخدام اليومي والدراسي.</small><br>
+    آخر تحديث: فبراير 2026
+  </footer>
+
+  <script>
+    const units = {
+      weight: {
+        options: ['كيلوغرام','غرام','مليغرام','باوند','أونصة','طن متري','حبة'],
+        toBase:  [1, 0.001, 0.000001, 0.453592, 0.0283495, 1000, 0.0000647989],
+        notice: null
+      },
+      length: {
+        options: ['متر','سنتيمتر','مليمتر','كيلومتر','إنش','قدم','ياردة','ميل','ميل بحري'],
+        toBase:  [1, 0.01, 0.001, 1000, 0.0254, 0.3048, 0.9144, 1609.344, 1852],
+        notice: null
+      },
+      temp: {
+        options: ['سيلسيوس','فهرنهايت','كلفن'],
+        toBase: null,
+        notice: null
+      },
+      area: {
+        options: ['متر مربع','سنتيمتر مربع','كيلومتر مربع','فدان','هكتار','إنش مربع','قدم مربعة','ميل مربع'],
+        toBase:  [1, 0.0001, 1000000, 4046.856, 10000, 0.00064516, 0.092903, 2589988.11],
+        notice: null
+      },
+      volume: {
+        options: ['لتر','مليلتر','متر مكعب','سنتيمتر مكعب','جالون أمريكي','كوب','ملعقة كبيرة','ملعقة صغيرة'],
+        toBase:  [1, 0.001, 1000, 0.001, 3.78541, 0.236588, 0.0147868, 0.00492892],
+        notice: 'الكوب والملعقة مبنية على المقياس الأمريكي'
+      },
+      speed: {
+        options: ['متر/ثانية','كيلومتر/ساعة','ميل/ساعة','عقدة بحرية','قدم/ثانية'],
+        toBase:  [1, 0.277778, 0.44704, 0.514444, 0.3048],
+        notice: null
+      },
+      data: {
+        options: ['بايت','كيلوبايت','ميغابايت','غيغابايت','تيرابايت','بت','ميغابت','غيغابت'],
+        toBase:  [1, 1024, 1048576, 1073741824, 1099511627776, 0.125, 131072, 134217728],
+        notice: 'الحساب مبني على النظام الثنائي (1 كيلوبايت = 1024 بايت)'
+      },
+      time: {
+        options: ['ثانية','دقيقة','ساعة','يوم','أسبوع','شهر (30 يوم)','سنة'],
+        toBase:  [1, 60, 3600, 86400, 604800, 2592000, 31536000],
+        notice: 'الشهر محسوب على أساس 30 يوماً، والسنة على أساس 365 يوماً'
+      }
+    };
+
+    let currentTab = 'weight';
+    let darkMode = false;
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+    }
+
+    function toggleTheme() {
+      darkMode = !darkMode;
+      document.body.classList.toggle('dark', darkMode);
+      document.getElementById('themeBtn').textContent = darkMode ? 'الوضع النهاري' : 'الوضع الليلي';
+    }
+
+    function switchTab(tab, btn) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      loadUnits();
+      document.getElementById('inputVal').value = '';
+      document.getElementById('resultNumber').textContent = '—';
+      document.getElementById('resultLabel').textContent = 'النتيجة ستظهر هنا';
+      document.getElementById('multiResults').style.display = 'none';
+      updateNotice();
+    }
+
+    function loadUnits() {
+      const data = units[currentTab];
+      const from = document.getElementById('fromUnit');
+      const to = document.getElementById('toUnit');
+      from.innerHTML = '';
+      to.innerHTML = '';
+      data.options.forEach((opt, i) => {
+        from.innerHTML += `<option value="${i}">${opt}</option>`;
+        to.innerHTML += `<option value="${i}">${opt}</option>`;
+      });
+      to.value = 1;
+    }
+
+    function updateNotice() {
+      const notice = document.getElementById('notice');
+      const msg = units[currentTab].notice;
+      if (msg) {
+        notice.textContent = 'تنبيه: ' + msg;
+        notice.style.display = 'block';
+      } else {
+        notice.style.display = 'none';
+      }
+    }
+
+    function swapUnits() {
+      const from = document.getElementById('fromUnit');
+      const to = document.getElementById('toUnit');
+      const tmp = from.value;
+      from.value = to.value;
+      to.value = tmp;
+      convert();
+    }
+
+    function convert() {
+      const val = parseFloat(document.getElementById('inputVal').value);
+      const from = parseInt(document.getElementById('fromUnit').value);
+      const to = parseInt(document.getElementById('toUnit').value);
+      const data = units[currentTab];
+
+      if (isNaN(val)) {
+        document.getElementById('resultNumber').textContent = '—';
+        document.getElementById('resultLabel').textContent = 'النتيجة ستظهر هنا';
+        document.getElementById('multiResults').style.display = 'none';
+        return;
+      }
+
+      let result;
+      if (currentTab === 'temp') {
+        result = convertTemp(val, from, to);
+      } else {
+        result = (val * data.toBase[from]) / data.toBase[to];
+      }
+
+      const formatted = parseFloat(result.toPrecision(8));
+      document.getElementById('resultNumber').textContent = formatted.toLocaleString('ar');
+      document.getElementById('resultLabel').textContent =
+        `${val} ${data.options[from]} = ${formatted} ${data.options[to]}`;
+
+      showMultiResults(val, from);
+    }
+
+    function showMultiResults(val, from) {
+      const data = units[currentTab];
+      if (currentTab === 'temp') {
+        document.getElementById('multiResults').style.display = 'none';
+        return;
+      }
+
+      const grid = document.getElementById('multiGrid');
+      grid.innerHTML = '';
+      const baseVal = val * data.toBase[from];
+
+      data.options.forEach((opt, i) => {
+        if (i === from) return;
+        const converted = baseVal / data.toBase[i];
+        const formatted = parseFloat(converted.toPrecision(6));
+        grid.innerHTML += `
+          <div class="multi-item">
+            <div class="m-val">${formatted.toLocaleString('ar')}</div>
+            <div class="m-unit">${opt}</div>
+          </div>`;
+      });
+
+      document.getElementById('multiResults').style.display = 'block';
+    }
+
+    function convertTemp(val, from, to) {
+      let c;
+      if (from === 0) c = val;
+      else if (from === 1) c = (val - 32) * 5/9;
+      else c = val - 273.15;
+      if (to === 0) return c;
+      else if (to === 1) return c * 9/5 + 32;
+      else return c + 273.15;
+    }
+
+    function copyResult() {
+      const text = document.getElementById('resultLabel').textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.querySelector('.copy-btn');
+        btn.textContent = 'تم النسخ';
+        setTimeout(() => btn.textContent = 'نسخ', 2000);
+      });
+    }
+
+    function showHow() {
+      const val = parseFloat(document.getElementById('inputVal').value);
+      const from = parseInt(document.getElementById('fromUnit').value);
+      const to = parseInt(document.getElementById('toUnit').value);
+      const data = units[currentTab];
+
+      if (isNaN(val)) { alert('أدخل قيمة أولاً'); return; }
+
+      const box = document.getElementById('formulaBox');
+      let html = '';
+
+      if (currentTab === 'temp') {
+        let explanation = '';
+        if (from === 0 && to === 1) explanation = `${val} × 9/5 + 32 = ${(val * 9/5 + 32).toFixed(4)} فهرنهايت`;
+        else if (from === 1 && to === 0) explanation = `(${val} - 32) × 5/9 = ${((val-32)*5/9).toFixed(4)} سيلسيوس`;
+        else if (from === 0 && to === 2) explanation = `${val} + 273.15 = ${(val+273.15).toFixed(4)} كلفن`;
+        else if (from === 2 && to === 0) explanation = `${val} - 273.15 = ${(val-273.15).toFixed(4)} سيلسيوس`;
+        else if (from === 1 && to === 2) explanation = `(${val} - 32) × 5/9 + 273.15 = ${((val-32)*5/9+273.15).toFixed(4)} كلفن`;
+        else if (from === 2 && to === 1) explanation = `(${val} - 273.15) × 9/5 + 32 = ${((val-273.15)*9/5+32).toFixed(4)} فهرنهايت`;
+        else explanation = `نفس الوحدة، النتيجة = ${val}`;
+        html = `<span>${explanation}</span>`;
+      } else {
+        const baseVal = val * data.toBase[from];
+        const result = baseVal / data.toBase[to];
+        html = `
+          <span>الخطوة 1: تحويل ${data.options[from]} للوحدة الأساسية</span>
+          <span>${val} × ${data.toBase[from]} = ${baseVal}</span>
+          <span>الخطوة 2: تحويل للوحدة المطلوبة (${data.options[to]})</span>
+          <span>${baseVal} ÷ ${data.toBase[to]} = ${parseFloat(result.toPrecision(8))}</span>
+        `;
+      }
+
+      box.innerHTML = html;
+      document.getElementById('popupOverlay').classList.add('show');
+    }
+
+    function closePopup(e) {
+      if (!e || e.target === document.getElementById('popupOverlay')) {
+        document.getElementById('popupOverlay').classList.remove('show');
+      }
+    }
+
+    loadUnits();
+    updateNotice();
+  </script>
+</body>
+</html>
